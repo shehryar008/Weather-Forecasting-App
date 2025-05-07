@@ -12,9 +12,7 @@ matplotlib.use('Agg')
 
 
 def run_arima_forecast():
-    # Load CSV file (update path if needed)
     data = pd.read_csv('weather.csv')
-    # (Because your CSV has no date, create a synthetic index with the most recent date as today)
     data.rename(columns={'MaxTemp': 'Temperature'}, inplace=True)
     num_rows = len(data)
     end_date = pd.Timestamp.today().normalize()
@@ -24,18 +22,15 @@ def run_arima_forecast():
     data = data.asfreq('D')
     data['Temperature'].fillna(method='ffill', inplace=True)
     
-    # Split data into train/test
     temp_series = data['Temperature']
     train_size = int(len(temp_series) * 0.8)
     train, test = temp_series[:train_size], temp_series[train_size:]
     
-    # Fit an ARIMA model – adjust parameters as needed
     model_arima = ARIMA(train, order=(5, 1, 0))
     model_arima_fit = model_arima.fit()
     forecast_arima = model_arima_fit.forecast(steps=len(test))
     
     mse_arima = mean_squared_error(test, forecast_arima)
-    # You could also generate a plot, save it as an image in /static/images, then pass the file path.
     plt.figure(figsize=(10,5))
     plt.plot(test.index, test, label='Actual')
     plt.plot(test.index, forecast_arima, label='Forecast', color='red')
@@ -47,7 +42,6 @@ def run_arima_forecast():
     return forecast_arima, mse_arima, image_path
 
 def run_lstm_forecast():
-    # Similar process for LSTM forecast
     data = pd.read_csv('weather.csv')
     data.rename(columns={'MaxTemp': 'Temperature'}, inplace=True)
     num_rows = len(data)
@@ -62,7 +56,6 @@ def run_lstm_forecast():
     scaler = MinMaxScaler(feature_range=(0, 1))
     temps_scaled = scaler.fit_transform(temperatures)
 
-    # Create the dataset for LSTM
     def create_dataset(dataset, look_back=1):
         X, Y = [], []
         for i in range(len(dataset) - look_back):
@@ -88,7 +81,6 @@ def run_lstm_forecast():
     predictions_actual = scaler.inverse_transform(predictions_lstm)
     Y_test_actual = scaler.inverse_transform(Y_test.reshape(-1, 1))
     
-    # Generate and save a plot
     plt.figure(figsize=(10,5))
     plt.plot(Y_test_actual, label='Actual')
     plt.plot(predictions_actual, label='Forecast', color='red')
